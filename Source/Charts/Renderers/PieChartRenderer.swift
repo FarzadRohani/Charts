@@ -19,9 +19,9 @@ import CoreGraphics
 
 open class PieChartRenderer: DataRenderer
 {
-    @objc open weak var chart: PieChartView?
+    open weak var chart: PieChartView?
     
-    @objc public init(chart: PieChartView?, animator: Animator?, viewPortHandler: ViewPortHandler?)
+    public init(chart: PieChartView?, animator: Animator?, viewPortHandler: ViewPortHandler?)
     {
         super.init(animator: animator, viewPortHandler: viewPortHandler)
         
@@ -46,7 +46,7 @@ open class PieChartRenderer: DataRenderer
         }
     }
     
-    @objc open func calculateMinimumRadiusForSpacedSlice(
+    open func calculateMinimumRadiusForSpacedSlice(
         center: CGPoint,
         radius: CGFloat,
         angle: CGFloat,
@@ -88,7 +88,7 @@ open class PieChartRenderer: DataRenderer
     }
     
     /// Calculates the sliceSpace to use based on visible values and their size compared to the set sliceSpace.
-    @objc open func getSliceSpace(dataSet: IPieChartDataSet) -> CGFloat
+    open func getSliceSpace(dataSet: IPieChartDataSet) -> CGFloat
     {
         guard
             dataSet.automaticallyDisableSliceSpacing,
@@ -105,8 +105,8 @@ open class PieChartRenderer: DataRenderer
         
         return sliceSpace
     }
-
-    @objc open func drawDataSet(context: CGContext, dataSet: IPieChartDataSet)
+    
+    open func drawDataSet(context: CGContext, dataSet: IPieChartDataSet)
     {
         guard
             let chart = chart,
@@ -137,7 +137,7 @@ open class PieChartRenderer: DataRenderer
         }
         
         let sliceSpace = visibleAngleCount <= 1 ? 0.0 : getSliceSpace(dataSet: dataSet)
-
+        
         context.saveGState()
         
         for j in 0 ..< entryCount
@@ -168,14 +168,14 @@ open class PieChartRenderer: DataRenderer
                     
                     let arcStartPointX = center.x + radius * cos(startAngleOuter * ChartUtils.Math.FDEG2RAD)
                     let arcStartPointY = center.y + radius * sin(startAngleOuter * ChartUtils.Math.FDEG2RAD)
-
+                    
                     let path = CGMutablePath()
                     
                     path.move(to: CGPoint(x: arcStartPointX,
                                           y: arcStartPointY))
                     
                     path.addRelativeArc(center: center, radius: radius, startAngle: startAngleOuter * ChartUtils.Math.FDEG2RAD, delta: sweepAngleOuter * ChartUtils.Math.FDEG2RAD)
-
+                    
                     if drawInnerArc &&
                         (innerRadius > 0.0 || accountForSliceSpacing)
                     {
@@ -229,7 +229,7 @@ open class PieChartRenderer: DataRenderer
                                     arcStartPointY: arcStartPointY,
                                     startAngle: startAngleOuter,
                                     sweepAngle: sweepAngleOuter)
-
+                            
                             let arcEndPointX = center.x + sliceSpaceOffset * cos(angleMiddle * ChartUtils.Math.FDEG2RAD)
                             let arcEndPointY = center.y + sliceSpaceOffset * sin(angleMiddle * ChartUtils.Math.FDEG2RAD)
                             
@@ -343,7 +343,7 @@ open class PieChartRenderer: DataRenderer
                 
                 // offset needed to center the drawn text in the slice
                 let angleOffset = (sliceAngle - sliceSpaceMiddleAngle / 2.0) / 2.0
-
+                
                 angle = angle + angleOffset
                 
                 let transformedAngle = rotationAngle + angle * CGFloat(phaseY)
@@ -431,7 +431,7 @@ open class PieChartRenderer: DataRenderer
                             text: valueText,
                             point: labelPoint,
                             align: align,
-                            attributes: [NSAttributedStringKey.font: valueFont, NSAttributedStringKey.foregroundColor: valueTextColor]
+                            attributes: [NSAttributedStringKey(rawValue: NSAttributedStringKey.font.rawValue): valueFont, NSAttributedStringKey(rawValue: NSAttributedStringKey.foregroundColor.rawValue): valueTextColor]
                         )
                         
                         if j < data.entryCount && pe?.label != nil
@@ -442,8 +442,8 @@ open class PieChartRenderer: DataRenderer
                                 point: CGPoint(x: labelPoint.x, y: labelPoint.y + lineHeight),
                                 align: align,
                                 attributes: [
-                                    NSAttributedStringKey.font: entryLabelFont ?? valueFont,
-                                    NSAttributedStringKey.foregroundColor: entryLabelColor ?? valueTextColor]
+                                    NSAttributedStringKey(rawValue: NSAttributedStringKey.font.rawValue): entryLabelFont ?? valueFont,
+                                    NSAttributedStringKey(rawValue: NSAttributedStringKey.foregroundColor.rawValue): entryLabelColor ?? valueTextColor]
                             )
                         }
                     }
@@ -457,8 +457,8 @@ open class PieChartRenderer: DataRenderer
                                 point: CGPoint(x: labelPoint.x, y: labelPoint.y + lineHeight / 2.0),
                                 align: align,
                                 attributes: [
-                                    NSAttributedStringKey.font: entryLabelFont ?? valueFont,
-                                    NSAttributedStringKey.foregroundColor: entryLabelColor ?? valueTextColor]
+                                    NSAttributedStringKey(rawValue: NSAttributedStringKey.font.rawValue): entryLabelFont ?? valueFont,
+                                    NSAttributedStringKey(rawValue: NSAttributedStringKey.foregroundColor.rawValue): entryLabelColor ?? valueTextColor]
                             )
                         }
                     }
@@ -469,17 +469,59 @@ open class PieChartRenderer: DataRenderer
                             text: valueText,
                             point: CGPoint(x: labelPoint.x, y: labelPoint.y + lineHeight / 2.0),
                             align: align,
-                            attributes: [NSAttributedStringKey.font: valueFont, NSAttributedStringKey.foregroundColor: valueTextColor]
+                            attributes: [NSAttributedStringKey(rawValue: NSAttributedStringKey.font.rawValue): valueFont, NSAttributedStringKey(rawValue: NSAttributedStringKey.foregroundColor.rawValue): valueTextColor]
                         )
                     }
                 }
                 
+                if let icon = e.icon, dataSet.isDrawIconsEnabled
+                {
+                    // calculate the icon's position
+                    
+                    let x = (labelRadius + iconsOffset.y) * sliceXBase + center.x
+                    var y = (labelRadius + iconsOffset.y) * sliceYBase + center.y
+                    y += iconsOffset.x
+                    
+                    var drawOffset = CGPoint()
+                    drawOffset.x = x - (icon.size.width / 2)
+                    drawOffset.y = y - (icon.size.height / 2)
+                    
+                    context.move(to: CGPoint(x: x, y: y))
+                    context.addLine(to: CGPoint(x: center.x, y: center.y))
+                    
+                    context.setLineCap(CGLineCap.round)
+                    context.setLineWidth(1)
+                    context.setStrokeColor(UIColor.lightGray.cgColor)
+                    context.setBlendMode(CGBlendMode.normal)
+                    context.strokePath()
+                    
+                    context.setFillColor(dataSet.color(atIndex: j).cgColor)
+                    context.fillEllipse(in: CGRect(origin: drawOffset, size: icon.size))
+                    
+                    ChartUtils.drawImage(context: context,
+                                         image: icon,
+                                         x: x,
+                                         y: y,
+                                         size: icon.size)
+                }
+                
+                
                 if drawXInside || drawYInside
                 {
                     // calculate the text position
-                    let x = labelRadius * sliceXBase + center.x
-                    let y = labelRadius * sliceYBase + center.y - lineHeight
-                 
+                    //                    let x = labelRadius * sliceXBase + center.x
+                    //                    let y = labelRadius * sliceYBase + center.y - lineHeight
+                    
+                    
+                    let x = (labelRadius + iconsOffset.y * 2) * sliceXBase + center.x
+                    var y: CGFloat = 0.0
+                    if sliceYBase < 0 {
+                        y = (labelRadius + iconsOffset.y * 2) * sliceYBase + center.y
+                    } else {
+                        y = (labelRadius + iconsOffset.y * 1.6) * sliceYBase + center.y
+                    }
+                    y += iconsOffset.x
+                    
                     if drawXInside && drawYInside
                     {
                         ChartUtils.drawText(
@@ -487,7 +529,7 @@ open class PieChartRenderer: DataRenderer
                             text: valueText,
                             point: CGPoint(x: x, y: y),
                             align: .center,
-                            attributes: [NSAttributedStringKey.font: valueFont, NSAttributedStringKey.foregroundColor: valueTextColor]
+                            attributes: [NSAttributedStringKey(rawValue: NSAttributedStringKey.font.rawValue): valueFont, NSAttributedStringKey(rawValue: NSAttributedStringKey.foregroundColor.rawValue): valueTextColor]
                         )
                         
                         if j < data.entryCount && pe?.label != nil
@@ -498,8 +540,8 @@ open class PieChartRenderer: DataRenderer
                                 point: CGPoint(x: x, y: y + lineHeight),
                                 align: .center,
                                 attributes: [
-                                    NSAttributedStringKey.font: entryLabelFont ?? valueFont,
-                                    NSAttributedStringKey.foregroundColor: entryLabelColor ?? valueTextColor]
+                                    NSAttributedStringKey(rawValue: NSAttributedStringKey.font.rawValue): entryLabelFont ?? valueFont,
+                                    NSAttributedStringKey(rawValue: NSAttributedStringKey.foregroundColor.rawValue): entryLabelColor ?? valueTextColor]
                             )
                         }
                     }
@@ -513,8 +555,8 @@ open class PieChartRenderer: DataRenderer
                                 point: CGPoint(x: x, y: y + lineHeight / 2.0),
                                 align: .center,
                                 attributes: [
-                                    NSAttributedStringKey.font: entryLabelFont ?? valueFont,
-                                    NSAttributedStringKey.foregroundColor: entryLabelColor ?? valueTextColor]
+                                    NSAttributedStringKey(rawValue: NSAttributedStringKey.font.rawValue): entryLabelFont ?? valueFont,
+                                    NSAttributedStringKey(rawValue: NSAttributedStringKey.foregroundColor.rawValue): entryLabelColor ?? valueTextColor]
                             )
                         }
                     }
@@ -525,26 +567,12 @@ open class PieChartRenderer: DataRenderer
                             text: valueText,
                             point: CGPoint(x: x, y: y + lineHeight / 2.0),
                             align: .center,
-                            attributes: [NSAttributedStringKey.font: valueFont, NSAttributedStringKey.foregroundColor: valueTextColor]
+                            attributes: [NSAttributedStringKey(rawValue: NSAttributedStringKey.font.rawValue): valueFont, NSAttributedStringKey(rawValue: NSAttributedStringKey.foregroundColor.rawValue): valueTextColor]
                         )
                     }
                 }
                 
-                if let icon = e.icon, dataSet.isDrawIconsEnabled
-                {
-                    // calculate the icon's position
-                    
-                    let x = (labelRadius + iconsOffset.y) * sliceXBase + center.x
-                    var y = (labelRadius + iconsOffset.y) * sliceYBase + center.y
-                    y += iconsOffset.x
-                    
-                    ChartUtils.drawImage(context: context,
-                                         image: icon,
-                                         x: x,
-                                         y: y,
-                                         size: icon.size)
-                }
-
+                
                 xIndex += 1
             }
         }
@@ -652,7 +680,7 @@ open class PieChartRenderer: DataRenderer
             drawingRect.size = textBounds.size
             
             context.saveGState()
-
+            
             let clippingPath = CGPath(ellipseIn: holeRect, transform: nil)
             context.beginPath()
             context.addPath(clippingPath)
@@ -702,7 +730,7 @@ open class PieChartRenderer: DataRenderer
             {
                 continue
             }
-
+            
             let entryCount = set.entryCount
             var visibleAngleCount = 0
             for j in 0 ..< entryCount
@@ -841,3 +869,4 @@ open class PieChartRenderer: DataRenderer
         context.restoreGState()
     }
 }
+

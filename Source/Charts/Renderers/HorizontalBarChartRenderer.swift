@@ -406,19 +406,19 @@ open class HorizontalBarChartRenderer: BarChartRenderer
                         
                         if let icon = e.icon, dataSet.isDrawIconsEnabled
                         {
-                            var px = (rect.origin.x + rect.size.width)
-                                + (val >= 0.0 ? posOffset : negOffset)
                             var py = y
-                            
-                            px += iconsOffset.x
                             py += iconsOffset.y
+                            var drawOffset = CGPoint()
+                            drawOffset.y = py - (icon.size.width / 2)
+                            drawOffset.x = iconsOffset.x - (icon.size.height / 2)
                             
                             ChartUtils.drawImage(
                                 context: context,
                                 image: icon,
-                                x: px,
+                                x: iconsOffset.x,
                                 y: py,
                                 size: icon.size)
+                            
                         }
                     }
                 }
@@ -487,19 +487,20 @@ open class HorizontalBarChartRenderer: BarChartRenderer
                             
                             if let icon = e.icon, dataSet.isDrawIconsEnabled
                             {
-                                var px = (rect.origin.x + rect.size.width)
-                                    + (val >= 0.0 ? posOffset : negOffset)
-                                var py = rect.origin.y
-                                
-                                px += iconsOffset.x
+                                var py = rect.origin.y + rect.size.height / 2.0
                                 py += iconsOffset.y
+                                
+                                var drawOffset = CGPoint()
+                                drawOffset.y = py - (icon.size.width / 2)
+                                drawOffset.x = iconsOffset.x - (icon.size.height / 2)
                                 
                                 ChartUtils.drawImage(
                                     context: context,
                                     image: icon,
-                                    x: px,
+                                    x: iconsOffset.x,
                                     y: py,
                                     size: icon.size)
+                                
                             }
                         }
                         else
@@ -557,7 +558,7 @@ open class HorizontalBarChartRenderer: BarChartRenderer
                                 }
                                 
                                 let drawBelow = (val == 0.0 && negY == 0.0 && posY > 0.0) || val < 0.0
-
+                                
                                 let x = transformed[k].x + (drawBelow ? negOffset : posOffset)
                                 let y = rect.origin.y + rect.size.height / 2.0
                                 
@@ -579,20 +580,24 @@ open class HorizontalBarChartRenderer: BarChartRenderer
                                 if dataSet.isDrawValuesEnabled
                                 {
                                     drawValue(context: context,
-                                        value: valueText,
-                                        xPos: x,
-                                        yPos: y + yOffset,
-                                        font: valueFont,
-                                        align: textAlign,
-                                        color: dataSet.valueTextColorAt(index))
+                                              value: valueText,
+                                              xPos: x,
+                                              yPos: y + yOffset,
+                                              font: valueFont,
+                                              align: textAlign,
+                                              color: dataSet.valueTextColorAt(index))
                                 }
                                 
                                 if let icon = e.icon, dataSet.isDrawIconsEnabled
                                 {
+                                    var drawOffset = CGPoint()
+                                    drawOffset.y = y - (icon.size.width / 2)
+                                    drawOffset.x = iconsOffset.x - (icon.size.height / 2)
+                                    
                                     ChartUtils.drawImage(
                                         context: context,
                                         image: icon,
-                                        x: x + iconsOffset.x,
+                                        x: iconsOffset.x,
                                         y: y + iconsOffset.y,
                                         size: icon.size)
                                 }
@@ -610,7 +615,8 @@ open class HorizontalBarChartRenderer: BarChartRenderer
     {
         guard let data = dataProvider?.data
             else { return false }
-        return data.entryCount < Int(CGFloat(dataProvider?.maxVisibleCount ?? 0) * (self.viewPortHandler?.scaleY ?? 1.0))
+        
+        return data.entryCount < Int(CGFloat(dataProvider?.maxVisibleCount ?? 0) * (viewPortHandler?.scaleY ?? 1.0))
     }
     
     /// Sets the drawing position of the highlight object based on the riven bar-rect.
@@ -619,3 +625,4 @@ open class HorizontalBarChartRenderer: BarChartRenderer
         high.setDraw(x: barRect.midY, y: barRect.origin.x + barRect.size.width)
     }
 }
+

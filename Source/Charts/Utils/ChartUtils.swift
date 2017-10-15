@@ -125,6 +125,9 @@ open class ChartUtils
     
     open class func drawText(context: CGContext, text: String, point: CGPoint, align: NSTextAlignment, attributes: [NSAttributedStringKey : Any]?)
     {
+        var text = text
+        text = text.convertNumbersInTextToPersian()
+        
         var point = point
         
         if align == .center
